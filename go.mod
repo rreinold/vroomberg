@@ -1,4 +1,4 @@
-module fincura
+module fin_analysis
 
 go 1.16
 

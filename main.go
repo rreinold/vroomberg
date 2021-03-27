@@ -6,17 +6,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-
+	"fin_analysis/util"
 	_ "github.com/mattn/go-sqlite3"
 )
-
-type LineItem struct {
-	Company    string
-	Start_date string
-	End_date   string
-	Key        string 
-	Value      string `json:"value"`
-}
 
 func main() {
 
@@ -41,5 +33,6 @@ func initializeDB() {
 	byteValue, _ := ioutil.ReadAll(jsonFile)
 	var result map[string]interface{}
 	json.Unmarshal(byteValue, &result)
+	util.RestructureGAAP(result)
 	fmt.Println(byteValue)
 }
