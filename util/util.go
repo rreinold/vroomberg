@@ -1,9 +1,12 @@
 package util
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"math"
+	"os"
 	"regexp"
 )
 
@@ -15,6 +18,30 @@ type LineItem struct {
 	Value      string `json:"value"`
 }
 
+func ReadLineItemsFromDisk(filepath string) ([]LineItem, error) {
+	jsonFile, err := os.Open(filepath)
+	if err != nil {
+		fmt.Println(err)
+		return []LineItem{}, err
+	}
+	defer jsonFile.Close()
+	var jsonMap map[string]interface{}
+
+	jsonBytes, errFile := ioutil.ReadAll(jsonFile)
+	if errFile != nil {
+		fmt.Println("Failed to read json init file")
+		return []LineItem{}, errFile
+	}
+	json.Unmarshal(jsonBytes, &jsonMap)
+
+	structured, errStructure := restructureGAAP(jsonMap)
+	if errStructure != nil {
+		fmt.Printf("Failed to restructure JSON: %v", err)
+		return []LineItem{}, errStructure
+	}
+	return structured, nil
+
+}
 func extractCompanyName(raw string) (string, error) {
 	regex := regexp.MustCompile(`(.*?).xbrl`)
 	matches := regex.FindStringSubmatch(raw)
@@ -38,7 +65,7 @@ func calculateValue(value float64, decimalExponent int) float64 {
 	return value * math.Pow10(decimalExponent)
 }
 
-func RestructureGAAP(root map[string]interface{}) ([]LineItem, error) {
+func restructureGAAP(root map[string]interface{}) ([]LineItem, error) {
 	fmt.Println("Restructuring")
 	var output []LineItem
 	for company, companyChildren := range root {

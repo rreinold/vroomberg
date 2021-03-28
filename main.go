@@ -2,21 +2,23 @@ package main
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fin_analysis/util"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
 var DefaultInitFile string = ""
+var DefaultQuery string = ""
 
 func main() {
 	var initFile string
+	var query string
+
 	flag.StringVar(&initFile, "init", DefaultInitFile, "Initialize DB with JSON filepath")
+	flag.StringVar(&query, "query", DefaultQuery, "Supported query")
 	flag.Parse()
 
 	db, err := sql.Open("sqlite3", "statements.db")
@@ -34,33 +36,17 @@ func main() {
 	defer db.Close()
 
 	fmt.Println("DB Prepped. Let's do this")
+	fmt.Println(util.GenerateSQLFromInput(db, query))
 
 }
 
 func initializeDB(db *sql.DB, initFile string) error {
-	jsonFile, err := os.Open(initFile)
+	lineItems, err := util.ReadLineItemsFromDisk(initFile)
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
-	defer jsonFile.Close()
-	var jsonMap map[string]interface{}
-
-	jsonBytes, errFile := ioutil.ReadAll(jsonFile)
-	if errFile != nil {
-		fmt.Println("Failed to read json init file")
-		return errFile
-	}
-	json.Unmarshal(jsonBytes, &jsonMap)
-
-	structured, errStructure := util.RestructureGAAP(jsonMap)
-	if errStructure != nil {
-		fmt.Printf("Failed to restructure JSON: %v", err)
-		return errStructure
-	}
-
 	util.CreateTable(db)
-	for _, lineItem := range structured {
+	for _, lineItem := range lineItems {
 		util.InsertLineItem(db, lineItem)
 	}
 
