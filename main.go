@@ -60,7 +60,10 @@ func initializeDB(db *sql.DB, initFile string) error {
 	}
 
 	util.CreateTable(db)
+	for _, lineItem := range structured {
+		util.InsertLineItem(db, lineItem)
+	}
 
-	fmt.Println(structured)
+	fmt.Println("initialized db")
 	return nil
 }
