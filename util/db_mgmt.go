@@ -58,6 +58,7 @@ func GenerateSQLFromInput(db *sql.DB, input string) (string, error) {
 		`([a-zA-Z].*) ([a-zA-Z].*) [\/] ([a-zA-Z].*) ([a-zA-Z]*)`,
 		`([a-zA-Z].*?) \*`}
 
+	// TODO Update SQL to more accurately query last statement
 	queryTemplates := [4]string{
 		`SELECT distinct(company) from financials where key='%v' and value %v %v order by end_date desc;`,
 		`SELECT value from financials where company = '%v' and key='%v' order by end_date desc limit 1;`,
