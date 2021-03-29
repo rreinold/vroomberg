@@ -18,7 +18,7 @@ func main() {
 	var initFile string
 	var query string
 
-	flag.StringVar(&initFile, "init", DefaultInitFile, "Initialize DB with JSON filepath as ./statements.db")
+	flag.StringVar(&initFile, "init", DefaultInitFile, "Initialize DB (./statements.db) with JSON filepath")
 	flag.StringVar(&query, "query", DefaultQuery, "Supported query")
 	flag.Parse()
 
@@ -37,6 +37,7 @@ func main() {
 	}
 	defer db.Close()
 
+	// If no query provided, exit
 	if query == DefaultQuery {
 		os.Exit(0)
 	}
@@ -50,6 +51,7 @@ func main() {
 
 }
 
+// Initialize DB by reading JSON, running INSERTS
 func initializeDB(db *sql.DB, initFile string) error {
 	fmt.Println("Structuring data...")
 	lineItems, err := util.ReadLineItemsFromDisk(initFile)

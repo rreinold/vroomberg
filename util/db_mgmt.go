@@ -8,6 +8,7 @@ import (
 	"strings"
 )
 
+// Create the single table in DB
 func CreateTable(db *sql.DB) error {
 	tableSQL := `CREATE TABLE financials (
 		"id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -27,6 +28,7 @@ func CreateTable(db *sql.DB) error {
 	return nil
 }
 
+// Insert a single row into financials
 func InsertLineItem(db *sql.DB, l LineItem) error {
 	insertSQL := `INSERT INTO financials(company, start_date, end_date, key, value) VALUES (?, ?, ?, ?, ?)`
 	statement, err := db.Prepare(insertSQL)
@@ -42,6 +44,8 @@ func InsertLineItem(db *sql.DB, l LineItem) error {
 	return nil
 }
 
+// Use regex to detect query type, and structure it into a SQL query
+// Note: SQL Injection is a concern, but since we run it local, user already has edit access. If this becomes a REST API, add SQL Injection checks
 // Type 0: NetIncomeLoss > -400000000
 // Type 1: TSLA NetIncomeLoss
 // Type 2: TSLA NetIncomeLoss / TSLA OperatingLeasePayments
@@ -68,10 +72,10 @@ func GenerateSQLFromInput(db *sql.DB, input string) (string, error) {
 		if matches == nil {
 			continue
 		}
+		// We found a matching regex, now let's make the SQL query
 		t := queryTemplates[i]
-		var rows *sql.Rows
-		var err error
 		var q string
+
 		switch i {
 		case 0:
 			q = fmt.Sprintf(t, matches[1], matches[2], matches[3])
@@ -87,20 +91,17 @@ func GenerateSQLFromInput(db *sql.DB, input string) (string, error) {
 			break
 		}
 
-		rows, err = db.Query(q)
+		rows, err := db.Query(q)
 		if err != nil {
 			fmt.Println(err)
 			return "", err
 		}
 		defer rows.Close()
 		for rows.Next() {
-			var value string
-			var key string
 			var err error
-			var row string
+			var key, value, row, company string
 			switch i {
 			case 0:
-				var company string
 				err = rows.Scan(&company)
 				row = company
 				break
@@ -125,6 +126,7 @@ func GenerateSQLFromInput(db *sql.DB, input string) (string, error) {
 	return output, nil
 }
 
+// If we need to initialize DB, clean the local db file prior
 func CleanDB(dbFilepath string) {
 	os.Remove(dbFilepath)
 }

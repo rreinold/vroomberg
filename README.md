@@ -48,3 +48,5 @@ vroomberg -query "TSLA *"
 2. Performance: Bulk INSERT for initializing DB
 3. DevOps: Separate build and production Docker images
 4. Feature: Update representation of floats into decimals to match financial domain
+5. QA: Add more units tests
+6. QA: Add system tests
