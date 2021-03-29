@@ -66,12 +66,9 @@ func calculateValue(value float64, decimalExponent int) float64 {
 }
 
 func restructureGAAP(root map[string]interface{}) ([]LineItem, error) {
-	fmt.Println("Restructuring")
 	var output []LineItem
 	for company, companyChildren := range root {
-		fmt.Println(company)
 		for dateRange, dateRangeChildren := range companyChildren.(map[string]interface{}) {
-			fmt.Println(dateRange)
 			for metric, metricChildren := range dateRangeChildren.(map[string]interface{}) {
 				companyName, err := extractCompanyName(company)
 				if err != nil {
@@ -87,14 +84,12 @@ func restructureGAAP(root map[string]interface{}) ([]LineItem, error) {
 					rawDecimalExponent := values["decimal"].(int)
 					value = calculateValue(value, rawDecimalExponent)
 				}
-				fmt.Println(values)
 				lineItem := LineItem{
 					Company:    companyName,
 					Start_date: startDate,
 					End_date:   endDate,
 					Key:        metric,
-					Value:      fmt.Sprintf("%d", value)}
-				fmt.Printf("%v", lineItem)
+					Value:      fmt.Sprintf("%v", value)}
 				output = append(output, lineItem)
 			}
 		}

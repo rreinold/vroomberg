@@ -3,6 +3,7 @@ package util
 import (
 	"database/sql"
 	"fmt"
+	"os"
 	"regexp"
 	"strings"
 )
@@ -42,19 +43,22 @@ func InsertLineItem(db *sql.DB, l LineItem) error {
 }
 
 // Type 0: NetIncomeLoss > -400000000
-// Type 1: TSLA NetIncomeLoss, TSLA *
+// Type 1: TSLA NetIncomeLoss
 // Type 2: TSLA NetIncomeLoss / TSLA OperatingLeasePayments
+// Type 3: TSLA *
 func GenerateSQLFromInput(db *sql.DB, input string) (string, error) {
 	var output string
-	queryTypes := [3]string{
+	queryTypes := [4]string{
 		`([a-zA-Z].*?) ([<>]) ([0-9-]*)`,
-		`([a-zA-Z].*?) ([a-zA-Z*].*)`,
-		`([a-zA-Z].*) ([a-zA-Z].*) ([\/]) ([a-zA-Z].*) ([a-zA-Z]*)`}
+		`([a-zA-Z].*?) ([a-zA-Z].*)`,
+		`([a-zA-Z].*) ([a-zA-Z].*) [\/] ([a-zA-Z].*) ([a-zA-Z]*)`,
+		`([a-zA-Z].*?) \*`}
 
-	queryTemplates := [3]string{
+	queryTemplates := [4]string{
 		`SELECT distinct(company) from financials where key='%v' and value %v %v order by end_date desc;`,
-		`SELECT value from financials where company = '%v' and key='%v' order by end_date desc limit 1`,
-		`SELECT (value from financials where company = '%v' and key='%v' order by end_date desc limit 1) / (SELECT value from financials where company = '%v' and key='%v' order by end_date desc limit 1)`}
+		`SELECT value from financials where company = '%v' and key='%v' order by end_date desc limit 1;`,
+		`SELECT A.value / B.value AS value FROM   (SELECT value from financials where company = '%v' and key='%v' order by end_date desc limit 1) A,(SELECT value from financials where company = '%v' and key='%v' order by end_date desc limit 1) B;`,
+		`SELECT distinct(key), value from financials where company = '%v' order by end_date desc;`}
 
 	var rowsArray []string
 
@@ -76,7 +80,10 @@ func GenerateSQLFromInput(db *sql.DB, input string) (string, error) {
 			q = fmt.Sprintf(t, matches[1], matches[2])
 			break
 		case 2:
-			q = fmt.Sprintf(t, matches[1], matches[2], matches[4], matches[5])
+			q = fmt.Sprintf(t, matches[1], matches[2], matches[3], matches[4])
+			break
+		case 3:
+			q = fmt.Sprintf(t, matches[1])
 			break
 		}
 
@@ -87,14 +94,37 @@ func GenerateSQLFromInput(db *sql.DB, input string) (string, error) {
 		}
 		defer rows.Close()
 		for rows.Next() {
-			var item string
-			if err := rows.Scan(&item); err != nil {
+			var value string
+			var key string
+			var err error
+			var row string
+			switch i {
+			case 0:
+				var company string
+				err = rows.Scan(&company)
+				row = company
+				break
+			case 3:
+				err = rows.Scan(&key, &value)
+				row = key + ", " + value
+				break
+			default:
+				err = rows.Scan(&value)
+				row = value
+				break
+			}
+			if err != nil {
 				return "", err
 			}
-			rowsArray = append(rowsArray, item)
+
+			rowsArray = append(rowsArray, row)
 		}
 		output = strings.Join(rowsArray, "\n")
 	}
 
 	return output, nil
+}
+
+func CleanDB(dbFilepath string) {
+	os.Remove(dbFilepath)
 }

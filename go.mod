@@ -1,4 +1,4 @@
-module fin_analysis
+module vroomberg
 
 go 1.16
 

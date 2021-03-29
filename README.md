@@ -2,53 +2,49 @@
 
 ## Overview
 
-A CLI tool for querying financial statements
+A CLI tool for querying S&P500 financial statements
 
 ## Usage
 
-1. Initialize the DB, with optional query
-2. Run a query against DB
-
-
 ```
-  -init string
-    	Initialize DB with JSON filepath
-  -query string
+  --init string
+    	Initialize DB (./statements.db) with JSON filepath
+  --query string
     	Supported query
 ```
 
-### Docker Hub
+### Basic (Recommended)
+
+#### Docker Hub, Preloaded DB
 
 ```
-docker run --name vroomberg -v $(PWD):/go/src/app rreinold/vroomberg:dev -init ./init.json -query "TSLA *"
+docker run rreinold/vroomberg:dev vroomberg --query "TSLA *"
 ```
 
-### Docker, Local
+### Advanced
+
+### Docker, Initialize DB
 
 1. Initialize once
 ```
 docker build -t rreinold/vroomberg:dev .
 docker run --name vroomberg -v $(PWD):/go/src/app rreinold/vroomberg:dev -init ./init.json -query "TSLA *"
 ```
-2. Then run queries against db
-```
-docker run --name vroomberg -v $(PWD):/go/src/app rreinold/vroomberg:dev -query "TSLA *"
-```
-
-
-
 
 ### Bare Metal
 
+Requires gcc to compile sqlite3 driver
+
 ```
-CGO_ENABLED=1 go run main.go -init ./init.json -query "TSLA *"
-CGO_ENABLED=1 go run main.go -query "TSLA *"
+go get
+CGO_ENABLED=1 go install
+vroomberg -init ./init.json -query "TSLA *"
+vroomberg -query "TSLA *"
 ```
-
-
-
 
 ## Roadmap
 
-1. Bulk INSERT for initializing DB
-2. Separate build and production Docker images
+1. Known Issue: Query Type #4 works only if same keys are used every year
+2. Performance: Bulk INSERT for initializing DB
+3. DevOps: Separate build and production Docker images
+4. Feature: Update representation of floats into decimals to match financial domain
