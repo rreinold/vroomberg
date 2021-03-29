@@ -60,7 +60,7 @@ Supported query types:
 
 |Type|Desc|Syntax|Example|
 |---|---|---|---|
-|1|Returns all companies that meet criteria on most recent annual statement|`<KEY> < <VALUE>`|`NetIncomeLoss < -400000000`|
+|1|Returns all companies that meet criteria on most recent annual statement|`<KEY> [<,>] <VALUE>`|`NetIncomeLoss < -400000000`|
 |2|Returns single value from a specific <COMPANY> on most recent annual statement|`<COMPANY> <KEY>`|`TSLA NetIncomeLoss`
 |3|Generate ratios between two reported values from specific companies on most recent annual statement|`<COMPANY1> <KEY1> / <COMPANY2> <KEY2>`| `TSLA NetIncomeLoss / TSLA OperatingLeasePayments`
 |4|Returns all values from a specific company on most recent annual statement|`<COMPANY> *`|`TSLA *`
