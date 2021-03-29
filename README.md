@@ -37,7 +37,7 @@ docker run --name vroomberg -v $(PWD):/go/src/app rreinold/vroomberg:dev vroombe
 
 ### Bare Metal
 
-Requires gcc to compile sqlite3 driver
+Requires [golang](https://golang.org/doc/install), and [gcc](https://gcc.gnu.org/install/)
 
 1. Initialize (takes several min)
 
